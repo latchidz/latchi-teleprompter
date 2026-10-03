@@ -44,10 +44,18 @@ jobs:
       - name: Smoke test the PRODUCTION exe
         shell: pwsh
         run: |
-          $env:LATCHI_TP_DATA  = "$PWD\smoke-data"
-          $env:LATCHI_SMOKE_OUT = "$PWD\smoke-results.json"
-          & .\publish\LATCHI-Teleprompter.exe --smoke
-          $code = $LASTEXITCODE
+          $exe = Join-Path $PWD 'publish\LATCHI-Teleprompter.exe'
+          Write-Host "exe exists: $(Test-Path $exe)"
+          Get-ChildItem publish -Filter *.exe | Select-Object Name, Length | Format-Table | Out-String | Write-Host
+          $env:LATCHI_TP_DATA   = Join-Path $PWD 'smoke-data'
+          $env:LATCHI_SMOKE_OUT = Join-Path $PWD 'smoke-results.json'
+          try {
+            $p = Start-Process -FilePath $exe -ArgumentList '--smoke' -Wait -PassThru
+            $code = $p.ExitCode
+          } catch {
+            Write-Host "LAUNCH ERROR: $_"
+            exit 42
+          }
           if (Test-Path .\smoke-results.json) {
             Write-Host "── smoke-results.json ──"
             Get-Content .\smoke-results.json
