@@ -54,12 +54,21 @@
 7. StaticResource يجب تعريفه قبل الاستخدام في ترتيب XAML؛ `Run.Text` لا يدعم StringFormat → خصائص منسقة مسبقاً (StoryRowVm.Meta).
 8. **فخ snapshot المستثنيات**: مجلدات `bin/obj/publish/dist/build` تختفي بين جلسات مساحة العمل — لا تعتمد عليها، و`git add -A` بعد فترة انقطاع قد يسجلها كحذف إن كانت متتبعة (ليست كذلك — مهملة منذ البداية).
 
-## الإصدار (v0.1.0 — 3 أكتوبر 2026)
+## الإصدار (v0.1.0 — 3 أكتوبر 2026) ✅ مُسلَّم
 
-- الإجراء: bump الإصدار (csproj + workflow fallback) → commit → push → tag `v0.1.0` → push → تنزيل الأرتيفاكت من Actions (الاحتفاظ بـSetup.exe والبورتبل والـmanifest فقط).
-- ⛔ لا Release عام، لا رفع لأي خدمة ثالثة.
-- الاختبارات: **34/34** أخضر (النواة) + فحص smoke ذاتي على exe الإنتاجي في CI (فشل أي فحص يفشل البناء).
+- التشغيل الرسمي: Actions run `37138922247` على الالتزام `a75f609` (وسم `v0.1.0`) — **نجح**.
+- الاختبارات: **34/34** xUnit (النواة) + **24/24** smoke على الـexe الإنتاجي نفسه في CI.
+- الأرتيفاكت (الأسماء/الأحجام/الـSHA-256 حقيقية، محلية = CI):
+  - `LATCHI-Teleprompter-Setup-0.1.0.exe` — 49,242,215 B — `1377ff48158eac76a0862426b9c470f95d0568e9313f60198907000ac3dc7c49`
+  - `LATCHI-Teleprompter-0.1.0-portable-win-x64.zip` — 66,390,539 B — `77fdeba0a590285d21d06ba5dae383b29891ee2fc1a8705aa4a2ff8d5f91dd3e`
+  - نسخة محفوظة محلياً: `/home/user/latchi-teleprompter-release/`
+- ⛔ لا Release عام، لا رفع لأي خدمة ثالثة — الأرتيفاكت عبر Actions فقط.
 - الأيقونة: `assets/icon/latchi-teleprompter.ico` (مولدة بPIL — مستند ذهبي على كحلي).
+
+### درس حرج من الإصدار (وُثّق لئلا يتكرر)
+- **StartupUri يبتلع exit code في وضع الـsmoke**: مع `StartupUri` معرفاً، يستمر WPF بعد `Shutdown(code)` داخل OnStartup وينشئ النافذة تلقائياً → العملية تخرج بـ0. الحل النهائي: بلا StartupUri، نافذة تُنشأ يدوياً بعد فحص smoke + `ShutdownMode=OnExplicitShutdown` + `main.Closed → Shutdown()`.
+- **pwsh على الrunner**: `& exe` لم يضبط `$LASTEXITCODE` (فارغ) → استخدم `Start-Process -Wait -PassThru` واقرأ `.ExitCode`.
+- **فحص خاطئ التصميم يكذب**: أول تشغيل أخضر كان يحوي فحصين فاشلين (S4 ترك المحرك playing قبل فحص النهاية؛ S6 بحث عن نص غير موجود في العينة). الدرس: detail لكل فحص + طباعة smoke-results في اللوج إلزامية.
 
 ## فحص الـsmoke (ماذا يتحقق)
 
