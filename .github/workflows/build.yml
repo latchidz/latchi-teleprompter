@@ -1,0 +1,97 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-x64:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build (Release)
+        run: dotnet build -c Release
+
+      - name: Unit tests (Core)
+        run: dotnet test -c Release --no-build --logger "console;verbosity=normal"
+
+      - name: Publish (win-x64, self-contained, ReadyToRun)
+        run: >
+          dotnet publish src/LatchiTeleprompter.App/LatchiTeleprompter.App.csproj
+          -c Release -r win-x64 --self-contained true -p:ReadyToRun=true
+          -p:PublishSingleFile=false -o publish
+
+      - name: Resolve version from tag
+        shell: pwsh
+        run: |
+          $v = "${env:GITHUB_REF_NAME}" -replace '^v',''
+          if ([string]::IsNullOrWhiteSpace($v) -or $v -notmatch '^\d+\.\d+\.\d+') { $v = '0.1.0' }
+          "VERSION=$v" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Version: $v"
+
+      - name: Smoke test the PRODUCTION exe
+        shell: pwsh
+        run: |
+          $env:LATCHI_TP_DATA  = "$PWD\smoke-data"
+          $env:LATCHI_SMOKE_OUT = "$PWD\smoke-results.json"
+          & .\publish\LATCHI-Teleprompter.exe --smoke
+          $code = $LASTEXITCODE
+          if (Test-Path .\smoke-results.json) {
+            Write-Host "── smoke-results.json ──"
+            Get-Content .\smoke-results.json
+          }
+          if ($code -ne 0) { Write-Host "SMOKE FAILED (exit $code)"; exit $code }
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { $iscc = "$env:ProgramFiles\Inno Setup 6\ISCC.exe" }
+          & $iscc /DMyAppVersion=$env:VERSION installer\latchi-teleprompter.iss
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Get-ChildItem installer\Output
+
+      - name: Portable zip
+        shell: pwsh
+        run: |
+          $zip = "LATCHI-Teleprompter-$env:VERSION-portable-win-x64.zip"
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Compress-Archive -Path publish\* -DestinationPath $zip
+          Move-Item $zip artifacts\
+          Move-Item installer\Output\LATCHI-Teleprompter-Setup-$env:VERSION.exe artifacts\
+          Copy-Item smoke-results.json artifacts\
+          Get-ChildItem artifacts
+
+      - name: SHA-256 manifest (real names, sizes, hashes)
+        shell: pwsh
+        run: |
+          $lines = @("LATCHI TELEPROMPTER v$env:VERSION — win-x64 artifacts", "Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') UTC-local", "")
+          Get-ChildItem artifacts | ForEach-Object {
+            $h = (Get-FileHash $_.FullName -Algorithm SHA256).Hash
+            $lines += ("{0}  {1,12:N0} bytes  {2}" -f $h, $_.Length, $_.Name)
+          }
+          $lines | Out-File artifacts\artifact-manifest.txt -Encoding utf8
+          Get-Content artifacts\artifact-manifest.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: latchi-teleprompter-v${{ env.VERSION }}-win-x64
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 90
