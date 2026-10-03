@@ -62,7 +62,7 @@
   - `LATCHI-Teleprompter-Setup-0.1.0.exe` — 49,242,215 B — `1377ff48158eac76a0862426b9c470f95d0568e9313f60198907000ac3dc7c49`
   - `LATCHI-Teleprompter-0.1.0-portable-win-x64.zip` — 66,390,539 B — `77fdeba0a590285d21d06ba5dae383b29891ee2fc1a8705aa4a2ff8d5f91dd3e`
   - نسخة محفوظة محلياً: `/home/user/latchi-teleprompter-release/`
-- ⛔ لا Release عام، لا رفع لأي خدمة ثالثة — الأرتيفاكت عبر Actions فقط.
+- ⛔ ثم ✅: نُفّذ النشر كـ**GitHub Release عام** بتاريخ 3 أكتوبر 2026 بعد طلب صريح من المستخدم نقض قاعدة المنع (release id 402656775، الأصول: Setup + Portable + manifest).
 - الأيقونة: `assets/icon/latchi-teleprompter.ico` (مولدة بPIL — مستند ذهبي على كحلي).
 
 ### درس حرج من الإصدار (وُثّق لئلا يتكرر)
