@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <!-- Allows compile validation on non-Windows dev boxes; the production
+         build always runs on windows-latest in GitHub Actions. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>LATCHI-Teleprompter</AssemblyName>
+    <RootNamespace>LatchiTeleprompter.App</RootNamespace>
+    <ApplicationIcon>..\..\assets\icon\latchi-teleprompter.ico</ApplicationIcon>
+    <Version>0.1.0</Version>
+    <InformationalVersion>0.1.0</InformationalVersion>
+    <Product>LATCHI TELEPROMPTER</Product>
+    <Company>LATCHI</Company>
+    <Authors>LATCHI</Authors>
+    <Description>Lightweight offline teleprompter for reading long scripts while recording.</Description>
+    <Copyright>© 2026 LATCHI</Copyright>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LatchiTeleprompter.Core\LatchiTeleprompter.Core.csproj" />
+  </ItemGroup>
+
+</Project>
