@@ -1,0 +1,19 @@
+# build outputs
+bin/
+obj/
+publish/
+artifacts/
+TestResults/
+
+# installer output
+installer/Output/
+
+# CI scratch
+smoke-data/
+smoke-results.json
+
+# IDE
+.vs/
+.idea/
+*.user
+*.suo
