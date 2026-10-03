@@ -114,6 +114,7 @@ public partial class MainWindow : Window
     {
         TxtHint.Visibility = Editor.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         ApplyEditorDirection();
+        UpdateStats(); // live word/char/time counter while typing
         _autosave.Schedule(_storyId, CurrentTitle(), Editor.Text, _lastReadingProgress);
     }
 

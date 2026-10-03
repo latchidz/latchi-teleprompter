@@ -13,12 +13,21 @@ public partial class App : Application
         DispatcherUnhandledException += App_DispatcherUnhandledException;
         if (SmokeRunner.ShouldRun(e.Args))
         {
+            // IMPORTANT: no window is ever created in smoke mode. With StartupUri
+            // removed (see App.xaml), Shutdown(exitCode) is the last word on the
+            // process exit code — a failed check FAILS the CI run.
             IsSmokeMode = true;
             var exitCode = SmokeRunner.Run();
             Shutdown(exitCode);
             return;
         }
         base.OnStartup(e);
+        // StartupUri is intentionally absent: Shutdown above must not be followed
+        // by an auto-created window (that swallowed the smoke exit code in CI).
+        var main = new Views.MainWindow();
+        MainWindow = main;
+        main.Closed += (_, _) => Shutdown(); // ShutdownMode=OnExplicitShutdown
+        main.Show();
     }
 
     private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

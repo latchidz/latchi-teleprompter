@@ -142,6 +142,7 @@ public static class SmokeRunner
             && Math.Abs(rem - 1000 / (4.0 + 3.0 * 50)) < 0.01
             && Math.Abs(engine.RemainingSeconds - 230 / (4.0 + 3.0 * 50)) < 0.01,
             $"rem0={rem:F2} rem1={engine.RemainingSeconds:F2}");
+        engine.Pause();          // was left playing by the previous check
         engine.Seek(1000);
         engine.Play(); // at the end, Play must be a no-op
         Add("S4 engine end", engine.AtEnd && !engine.IsPlaying);
@@ -179,17 +180,17 @@ public static class SmokeRunner
             chars = main!.Editor.Text.Length;
             statsText = main!.TxtStats.Text;
         });
-        Add("S6 editor stats", words > 1000 && chars > 5000 && statsText.Contains("كلمة"),
+        Add("S6 editor stats", words > 1000 && chars > 5000 && statsText.Contains("كلمة") && !statsText.StartsWith("0 كلمة"),
             $"words={words} chars={chars} stats=\"{statsText}\"");
 
         // autosave picked the editor content
         Pump(1.5);
         var mainAutosave = new AutosaveService(dataDir).Load();
-        Add("S6 editor autosave", mainAutosave is { Content.Length: > 5000 } && mainAutosave.Content.Contains("سرقة القرن"),
+        Add("S6 editor autosave", mainAutosave is { Content.Length: > 5000 } && mainAutosave.Content.Contains("قصة تجريبية بالدارجة"),
             $"len={mainAutosave?.Content.Length ?? 0}");
 
         // teleprompter window: layout + real animation + pause + end
-        double maxOffset = 0, offsetAfterPlay = 0, offsetFrozen = 0;
+        double maxOffset = 0, offsetAfterPlay = 0;
         bool endShown = false;
         double persisted = -1;
         RunOnUi(() =>
